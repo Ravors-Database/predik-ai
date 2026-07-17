@@ -33,40 +33,72 @@ export default function Home() {
 
   return (
     <main
-      style={{
-        minHeight: "100vh",
-        background: "#09090b",
-        color: "white",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "20px",
-      }}
-    >
+  style={{
+    minHeight: "100vh",
+    background:"#09090b",
+    color:"white",
+    display:"flex",
+    justifyContent:"center",
+    alignItems:"center",
+    padding:"20px",
+    position:"relative",
+    overflow:"hidden",
+  }}
+>
 
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "420px",
-          background: "#18181b",
-          borderRadius: "20px",
-          padding: "25px",
-          border: "1px solid #7c3aed",
-        }}
-      >
-
-        <h1 style={{
-          textAlign:"center",
-          fontSize:"32px"
-        }}>
-          🎯 Predik AI
-        </h1>
-
+  {/* Video Wallpaper */}
+  <video
+  autoPlay
+  loop
+  muted
+  playsInline
+  preload="auto"
+  style={{
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100vw",
+    height: "100vh",
+    objectFit: "cover",
+    zIndex: 0,
+  }}
+>
+  <source
+    src="https://ganga--link--ghhzdp9sv8hk.code.run/i/buzm2x6i.mp4"
+    type="video/mp4"
+  />
+</video>
+  {/* Gelap transparan */}   
+   <div  
+    style={{  
+      width: "100%",  
+      maxWidth: "420px",  
+      background: "#18181bcc",  
+      borderRadius: "20px",  
+      padding: "25px",  
+      border: "1px solid #7c3aed",  
+      position:"relative",  
+      zIndex:2  
+    }}  
+>
+<h1
+  style={{
+    textAlign: "center",
+    color: "white",
+    fontSize: "32px",
+    fontWeight: "bold",
+    margin: "10px 0 25px",
+    animation: "float 3s ease-in-out infinite",
+    textShadow: "0 0 15px white"
+  }}
+>
+  Dominic Predick
+</h1>
         <p style={{
           textAlign:"center",
           color:"#aaa"
         }}>
-          AI Pattern Analyzer
+          AI Dominic Engine
         </p>
 
         <textarea
@@ -84,20 +116,40 @@ export default function Home() {
           }}
         />
 
-        <button
-          onClick={handleAnalyze}
-          style={{
-            marginTop:"20px",
-            width:"100%",
-            height:"50px",
-            borderRadius:"15px",
-            background:"#7c3aed",
-            color:"white",
-            fontWeight:"bold"
-          }}
-        >
-          {loading ? "⏳ MENGANALISA..." : "🔮 ANALISA"}
-        </button>
+      <button
+  onClick={handleAnalyze}
+  style={{
+    marginTop:"20px",
+    width:"100%",
+    height:"50px",
+    borderRadius:"15px",
+    background:"#7c3aed",
+    color:"white",
+    fontWeight:"bold"
+  }}
+>
+  {loading ? "⏳ MENGANALISA..." : "🔮 ANALISA"}
+</button>
+
+<button
+  onClick={() => {
+    setLw("");
+    setResult(null);
+    setLoading(false);
+  }}
+  style={{
+    marginTop:"10px",
+    width:"100%",
+    height:"45px",
+    borderRadius:"15px",
+    background:"#dc2626",
+    color:"white",
+    fontWeight:"bold"
+  }}
+>
+  🗑️ HAPUS TEKS
+</button>
+          
 
      {result && (
   <div

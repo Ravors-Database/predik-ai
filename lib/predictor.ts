@@ -16,67 +16,96 @@ export function predict(a: AnalysisResult): PredictionResult {
 
   const reason: string[] = [];
 
-  if (a.winRateK > a.winRateB) {
-    scoreK += (a.winRateK - a.winRateB) * 0.4;
-    reason.push("Winrate K unggul");
-  } else if (a.winRateB > a.winRateK) {
-    scoreB += (a.winRateB - a.winRateK) * 0.4;
-    reason.push("Winrate B unggul");
-  }
+const winGap = Math.abs(a.winRateK - a.winRateB);
 
+if (a.winRateK > a.winRateB) {
+  scoreK += Math.min(12, winGap * 0.35);
+  reason.push("Winrate K unggul");
+}
+
+if (a.winRateB > a.winRateK) {
+  scoreB += Math.min(12, winGap * 0.35);
+  reason.push("Winrate B unggul");
+}
   if (a.trend === "K") {
-    scoreK += 10;
-    reason.push("Trend K");
-  } else if (a.trend === "B") {
-    scoreB += 10;
-    reason.push("Trend B");
-  }
+  scoreK += 8;
+  reason.push("Trend K");
+}
 
-  if (a.momentum === "K") {
-    scoreK += 10;
-    reason.push("Momentum K");
-  } else if (a.momentum === "B") {
-    scoreB += 10;
-    reason.push("Momentum B");
-  }
+if (a.trend === "B") {
+  scoreB += 8;
+  reason.push("Trend B");
+}
 
-  if (a.streakK >= 2 && a.streakK < 4) {
-    scoreK += a.streakK * 3;
-    reason.push("Streak K");
-  }
+ if (a.momentum === "K") {
+  scoreK += 6;
+  reason.push("Momentum K");
+}
 
-  if (a.streakB >= 2 && a.streakB < 4) {
-    scoreB += a.streakB * 3;
-    reason.push("Streak B");
-  }
+if (a.momentum === "B") {
+  scoreB += 6;
+  reason.push("Momentum B");
+}
 
-  if (a.streakK >= 4) {
-    scoreK -= 12;
-    scoreB += 12;
-    reason.push("Streak K ≥4, potensi berbalik ke B");
-  }
+  // Streak K
+if (a.streakK === 2) {
+  scoreK += 4;
+  reason.push("Streak K x2");
+} else if (a.streakK === 3) {
+  scoreK += 6;
+  reason.push("Streak K x3");
+} else if (a.streakK === 4) {
+  scoreK += 2;
+  scoreB += 4;
+  reason.push("Streak K mulai jenuh");
+} else if (a.streakK >= 5) {
+  scoreK -= 6;
+  scoreB += 8;
+  reason.push("Streak K sangat jenuh");
+}
 
-  if (a.streakB >= 4) {
-    scoreB -= 12;
-    scoreK += 12;
-    reason.push("Streak B ≥4, potensi berbalik ke K");
-  }
+// Streak B
+if (a.streakB === 2) {
+  scoreB += 4;
+  reason.push("Streak B x2");
+} else if (a.streakB === 3) {
+  scoreB += 6;
+  reason.push("Streak B x3");
+} else if (a.streakB === 4) {
+  scoreB += 2;
+  scoreK += 4;
+  reason.push("Streak B mulai jenuh");
+} else if (a.streakB >= 5) {
+  scoreB -= 6;
+  scoreK += 8;
+  reason.push("Streak B sangat jenuh");
+}
 
-  if (a.maxStreakK > a.maxStreakB) {
-    scoreK += 5;
-  } else if (a.maxStreakB > a.maxStreakK) {
-    scoreB += 5;
-  }
+const repeatGap = Math.abs(a.repeatK - a.repeatB);
 
-  if (a.repeatK > a.repeatB) {
-    scoreK += (a.repeatK - a.repeatB) * 2;
+if (a.repeatK > a.repeatB) {
+  scoreK += Math.min(6, repeatGap * 1.5);
+
+  if (a.repeatK >= 4) {
+    scoreK -= 2;
+    scoreB += 2;
+    reason.push("Repeat K mulai jenuh");
+  } else {
     reason.push("Repeat K dominan");
   }
+}
 
-  if (a.repeatB > a.repeatK) {
-    scoreB += (a.repeatB - a.repeatK) * 2;
+if (a.repeatB > a.repeatK) {
+  scoreB += Math.min(6, repeatGap * 1.5);
+
+  if (a.repeatB >= 4) {
+    scoreB -= 2;
+    scoreK += 2;
+    reason.push("Repeat B mulai jenuh");
+  } else {
     reason.push("Repeat B dominan");
   }
+}
 
   if (a.score20K > a.score20B) {
     scoreK += 4;
@@ -96,24 +125,68 @@ export function predict(a: AnalysisResult): PredictionResult {
     scoreB += 2;
   }
 
-  scoreK += (a.last3K - a.last3B) * 3;
-  scoreB += (a.last3B - a.last3K) * 3;
+  // Last 3 (paling penting)
+const gap3 = a.last3K - a.last3B;
 
-  scoreK += (a.last5K - a.last5B) * 2;
-  scoreB += (a.last5B - a.last5K) * 2;
+scoreK += gap3 * 4;
+scoreB -= gap3 * 4;
 
-  scoreK += (a.last10K - a.last10B);
-  scoreB += (a.last10B - a.last10K);
+// Last 5
+const gap5 = a.last5K - a.last5B;
 
-  scoreK += (a.last20K - a.last20B) * 0.8;
-  scoreB += (a.last20B - a.last20K) * 0.8;
-  
-    if (a.zigzagCount >= 3) {
-    scoreK += 2;
-    scoreB += 2;
-    reason.push("Pola zigzag");
+scoreK += gap5 * 2.5;
+scoreB -= gap5 * 2.5;
+
+// Last 10
+const gap10 = a.last10K - a.last10B;
+
+scoreK += gap10 * 1.5;
+scoreB -= gap10 * 1.5;
+
+// Last 20
+const gap20 = a.last20K - a.last20B;
+
+scoreK += gap20;
+scoreB -= gap20;
+
+// Konfirmasi jika semua timeframe searah
+if (
+  Math.sign(gap3) === Math.sign(gap5) &&
+  Math.sign(gap5) === Math.sign(gap10) &&
+  gap3 !== 0
+) {
+  if (gap3 > 0) {
+    scoreK += 5;
+    reason.push("Momentum K terkonfirmasi");
+  } else {
+    scoreB += 5;
+    reason.push("Momentum B terkonfirmasi");
   }
+}
+if (
+  Math.sign(gap3) !== Math.sign(gap20) &&
+  gap3 !== 0 &&
+  gap20 !== 0
+) {
+  if (gap3 > 0) {
+    scoreK += 3;
+    reason.push("Potensi reversal ke K");
+  } else {
+    scoreB += 3;
+    reason.push("Potensi reversal ke B");
+  }
+}
+  
+    if (a.zigzagCount >= 3 && a.zigzagCount <= 5) {
+  scoreK += 3;
+  scoreB += 3;
+  reason.push("Zigzag stabil");
+}
 
+if (a.zigzagCount > 5) {
+  scoreK += 1;
+  scoreB += 1;
+}
   if (a.switches <= a.totalGames * 0.4) {
     scoreK += 2;
     scoreB += 2;
@@ -146,18 +219,42 @@ export function predict(a: AnalysisResult): PredictionResult {
 
   }
 
-  const confidence = Math.min(
-    90,
-    Math.max(
-      55,
-      Math.round(
-        60 +
-        diff * 0.8 +
-        a.matchedPatterns
-      )
-    )
-  );
+  let confidence = 50;
 
+// Selisih skor
+confidence += Math.min(diff * 0.8, 20);
+
+// Banyak pola yang cocok
+confidence += a.matchedPatterns * 2;
+
+// Trend + Momentum searah
+if (
+  (a.trend === "K" && a.momentum === "K") ||
+  (a.trend === "B" && a.momentum === "B")
+) {
+  confidence += 6;
+}
+
+// Last3 dan Last5 searah
+if (
+  (a.last3K > a.last3B && a.last5K > a.last5B) ||
+  (a.last3B > a.last3K && a.last5B > a.last5K)
+) {
+  confidence += 4;
+}
+
+// Zigzag tinggi = kurangi keyakinan
+if (a.zigzagCount >= 4) {
+  confidence -= 3;
+}
+
+// Streak terlalu panjang = kurangi keyakinan
+if (a.streakK >= 5 || a.streakB >= 5) {
+  confidence -= 5;
+}
+
+// Batasi confidence
+confidence = Math.max(55, Math.min(90, Math.round(confidence)));
   return {
     side,
     confidence,
